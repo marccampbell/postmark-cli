@@ -1,3 +1,5 @@
+[![CircleCI](https://circleci.com/gh/marccampbell/postmark-cli/tree/master.svg?style=svg)](https://circleci.com/gh/marccampbell/postmark-cli/tree/master)
+
 # Postmark CLI
 
 A modern CLI for use in a CI/CD pipeline to push email templates to postmarkapp.com.
