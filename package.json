@@ -1,0 +1,33 @@
+{
+  "name": "postmark-cli",
+  "version": "1.0.0",
+  "description": "Postmarkapp.com CLI to use CI/CD in email templates",
+  "main": "./build/index.js",
+  "license": "MIT",
+  "dependencies": {
+    "@types/reflect-metadata": "^0.0.5",
+    "lodash": "^4.15.0",
+    "postmark": "^1.5.0",
+    "yargs": "^10.0.3"
+  },
+  "devDependencies": {
+    "@types/lodash": "^4.14.54",
+    "@types/node": "^8.0.53",
+    "chai": "^4.1.2",
+    "istanbul": "1.1.0-alpha.1",
+    "mocha": "^3.1.2",
+    "mocha-typescript": "^1.0.23",
+    "snyk": "^1.41.1",
+    "tslint": "^5.8.0",
+    "typemoq": "^2.1.0",
+    "typescript": "^2.6.2"
+  },
+  "scripts": {
+    "test": "mocha --recursive build/test/",
+    "cover": "yarn run pretest && istanbul cover _mocha --include-all-sources true --report lcovonly -- --recursive build/test/",
+    "cover-xml": "yarn run pretest && istanbul cover _mocha --include-all-sources true --report lcovonly -- --recursive --reporter mocha-junit-reporter build/test/",
+    "report-coverage": "coveralls < ./coverage/lcov.info && codeclimate-test-reporter < ./coverage/lcov.info",
+    "snyk-protect": "snyk protect"
+  },
+  "snyk": true
+}

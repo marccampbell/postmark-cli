@@ -1,0 +1,37 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/node:8.7
+    working_directory: ~/repo
+
+    steps:
+      - setup_remote_docker:
+          version: 17.06.0-ce
+      - checkout
+
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "package.json" }}
+          - v1-dependencies-
+
+      - run:
+          name: build
+          command: make deps build
+      - run:
+          name: test
+          command: make test
+
+      - save_cache:
+          paths:
+            - node_modules
+          key: v1-dependencies-{{ checksum "package.json" }}
+
+      - deploy:
+          name: Maybe Deploy
+          command: |
+            if [ "${CIRCLE_BRANCH}" == "master" ]; then
+              if [ "${CIRCLE_PROJECT_USERNAME}" == "marccampbell" ]; then
+                docker build -f ~/repo/deploy/Dockerfile-slim --build-arg version=${CIRCLE_SHA1:0:7} -t postmark-cli:${CIRCLE_SHA1:0:7} ~/repo
+              fi
+            fi

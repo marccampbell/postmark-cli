@@ -1,0 +1,16 @@
+FROM node:8.7-slim
+
+ARG version=unknown
+ENV VERSION=$version
+
+ADD . /src
+WORKDIR /src
+
+RUN apt-get -y update && \
+    apt-get install -y --no-install-recommends python build-essential && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN yarn
+RUN make build
+
+ENTRYPOINT ["node", "--no-deprecation", "bin/postmark"]
