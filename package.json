@@ -1,6 +1,6 @@
 {
   "name": "postmark-cli",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Postmarkapp.com CLI to use CI/CD in email templates",
   "main": "./build/index.js",
   "license": "MIT",
