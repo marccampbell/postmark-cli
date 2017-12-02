@@ -32,6 +32,8 @@ jobs:
           command: |
             if [ "${CIRCLE_BRANCH}" == "master" ]; then
               if [ "${CIRCLE_PROJECT_USERNAME}" == "marccampbell" ]; then
+                echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
+                npm publish
                 docker build -f ~/repo/deploy/Dockerfile-slim --build-arg version=${CIRCLE_SHA1:0:7} -t postmark-cli:${CIRCLE_SHA1:0:7} ~/repo
               fi
             fi
