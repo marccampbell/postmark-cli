@@ -1,11 +1,12 @@
 {
   "name": "postmark-cli",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Postmarkapp.com CLI to use CI/CD in email templates",
   "main": "./build/index.js",
   "license": "MIT",
   "dependencies": {
     "@types/reflect-metadata": "^0.0.5",
+    "bluebird": "^3.5.1",
     "lodash": "^4.15.0",
     "postmark": "^1.5.0",
     "yargs": "^10.0.3"

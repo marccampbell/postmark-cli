@@ -1,9 +1,13 @@
 import * as util from "util";
 import * as _ from "lodash";
+import * as Promise from "bluebird";
+import * as process from "process";
 import * as postmark from "postmark";
-import { statSync, readdirSync, mkdirSync, writeFileSync, readFileSync } from "fs";
+import { statSync, readdirSync, mkdirSync, writeFileSync, readFileSync, existsSync } from "fs";
 import { join, resolve } from "path";
 import { Manifest } from "../manifest";
+
+Promise.promisifyAll(postmark);
 
 interface Template {
   name: string;
@@ -39,7 +43,11 @@ export class Postmark {
     const destinationTemplates = await this.getAllDestinationTemplates();
 
     for (const sourceTemplate of sourceTemplates) {
-      await this.uploadTemplate(sourceTemplate);
+      if (sourceTemplate.id) {
+        await this.replaceTemplate(sourceTemplate);
+      } else {
+        await this.createTemplate(sourceTemplate);
+      }
     }
 
   }
@@ -116,9 +124,15 @@ export class Postmark {
 
       const manifests: Manifest[] = [];
       for (const templateDir of templateDirs) {
-        const b = JSON.parse(readFileSync(join(this.templateRoot, templateDir, "template.json")).toString("utf-8"));
+        const absoluteTemplateDir = join(this.templateRoot, templateDir);
+        const manifestFile = join(absoluteTemplateDir, "template.json");
+        if (!existsSync(manifestFile)) {
+          continue;
+        }
 
-        const manifest: Manifest = new Manifest(templateDir);
+        const b = JSON.parse(readFileSync(manifestFile).toString("utf-8"));
+
+        const manifest: Manifest = new Manifest(absoluteTemplateDir);
         manifest.id = b.id,
         manifest.associatedServerId = b.associatedServerId,
         manifest.name = b.name,
@@ -134,7 +148,35 @@ export class Postmark {
     }
   }
 
-  private async uploadTemplate(template: Manifest): Promise<boolean> {
+  private async createTemplate(template: Manifest): Promise<boolean> {
+    try {
+      const templateDir = join(resolve(this.templateRoot), template.localRoot!);
+      console.log(`   Uploading ${template.name} from ${templateDir}`);
+      const html = readFileSync(join(templateDir, "body.html")).toString("utf-8");
+      const text = readFileSync(join(templateDir, "body.txt")).toString("utf-8");
+
+      const postBody = {
+        "Name": template.name,
+        "Subject": template.subject,
+        "HtmlBody": html,
+        "TextBody": text,
+      };
+
+      const response = await this.client.createTemplateAsync(postBody);
+      console.log(`   ... upload complete`);
+
+      template.id = response.TemplateId;
+      template.active = response.Active;
+
+      template.write();
+      return true;
+    } catch (err) {
+      console.error(util.inspect(err));
+      throw err;
+    }
+  }
+
+  private async replaceTemplate(template: Manifest): Promise<boolean> {
     try {
       const templateDir = join(resolve(this.templateRoot), template.localRoot!);
       console.log(`   Uploading ${template.name} from ${templateDir}`);
@@ -149,7 +191,7 @@ export class Postmark {
         "TextBody": text,
       };
 
-      await this.client.editTemplate(template.id, putBody);
+      this.client.editTemplateAsync(template.id, putBody);
 
       console.log(`   ... upload complete`);
       return true;
